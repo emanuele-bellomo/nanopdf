@@ -60,3 +60,19 @@ fastlane/report.xml
 fastlane/Preview.html
 fastlane/screenshots/**/*.png
 fastlane/test_output
+
+# macOS System Files (Prevents annoying hidden files from being committed)
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+
+# Xcode Build Artifacts (Prevents massive multi-gigabyte build folders from uploading)
+DerivedData/
+build/
+*.xcuserstate
+
+# C/C++ Artifacts (Safety net since you are working with MuPDF's C-bridge)
+*.o
+*.a
+*.dylib
