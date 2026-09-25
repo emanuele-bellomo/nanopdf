@@ -27,38 +27,23 @@
   <!-- Banner Background (Rounded Rectangle) -->
   <rect width="800" height="250" rx="32" fill="url(#bg)" stroke="#2B364C" stroke-width="2" />
 
-  <!-- Book Glyph (Left Aligned) -->
-  <g transform="translate(70, 50) scale(1.4)" filter="url(#shadow)">
-    <path d="M 18 20 C 33 20, 44 24, 48 29 L 48 77 C 44 73, 32 69, 18 69 Z" fill="#E2E8F0" />
-    <path d="M 78 20 C 63 20, 52 24, 48 29 L 48 77 C 52 73, 64 69, 78 69 Z" fill="url(#pageGlow)" />
-    <line x1="48" y1="29" x2="48" y2="77" stroke="#0E131F" stroke-width="2.5" stroke-linecap="round" />
-    <circle cx="48" cy="91" r="3.8" fill="#38EF7D" />
-  </g>
+  <!-- Centered Lockup (Icon + Text) -->
+  <g transform="translate(190, 0)">
+    
+    <!-- Book Glyph -->
+    <g transform="translate(0, 55) scale(1.4)" filter="url(#shadow)">
+      <path d="M 18 20 C 33 20, 44 24, 48 29 L 48 77 C 44 73, 32 69, 18 69 Z" fill="#E2E8F0" />
+      <path d="M 78 20 C 63 20, 52 24, 48 29 L 48 77 C 52 73, 64 69, 78 69 Z" fill="url(#pageGlow)" />
+      <line x1="48" y1="29" x2="48" y2="77" stroke="#0E131F" stroke-width="2.5" stroke-linecap="round" />
+      <circle cx="48" cy="91" r="3.8" fill="#38EF7D" />
+    </g>
 
-  <!-- Typography -->
-  <g transform="translate(240, 115)">
-    <!-- Main Title -->
-    <text font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif" 
-          font-size="64" 
+    <!-- Single Title -->
+    <text x="140" y="152"
+          font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif" 
+          font-size="88" 
           font-weight="800" 
           letter-spacing="-1.5" 
           fill="url(#textGrad)">NanoPDF</text>
-    
-    <!-- Subtitle -->
-    <text y="40" 
-          font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif" 
-          font-size="20" 
-          font-weight="400" 
-          letter-spacing="0.2"
-          fill="#8492A6">A native, single-page PDF reader for Apple Silicon.</text>
-    
-    <!-- Tech Specs / Badges -->
-    <text y="80" 
-          font-family="ui-monospace, 'SF Mono', Menlo, Monaco, monospace" 
-          font-size="13" 
-          font-weight="600" 
-          letter-spacing="0.5"
-          fill="#38EF7D">&lt; 30MB RAM • VIM-KEY NAVIGATION • ZERO BLOAT</text>
   </g>
 </svg>
-
