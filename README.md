@@ -1,7 +1,7 @@
 # NanoPDF
 ### Lightweight Apple Silicon native PDF reader
 <p align="center">
-  <img src="img/banner.svg" alt="NanoPDF Logo">
+  <img src="img/banner.svg" width="600" alt="NanoPDF Logo">
 </p>
 
 This reader uses MuPDF as its engine, so it's highly optimized to save up on a lot of RAM.
