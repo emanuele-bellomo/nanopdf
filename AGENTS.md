@@ -13,6 +13,7 @@ This document outlines the development plan for building a highly optimized, sin
   - Keybindings: Arrow keys and Vim bindings (`j`/`k`, `h`/`l`).
   - Zoom In / Zoom Out.
   - Dark Mode (color matrix inversion).
+  - Jump to Page
 - **Explicitly Excluded (For Now):** Continuous vertical scrolling, Table of Contents / Outlines, text selection, search.
 
 ---

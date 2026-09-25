@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="iconBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E2638" />
+      <stop offset="100%" stop-color="#0E131F" />
+    </linearGradient>
+
+    <!-- Emerald Active Page Glow -->
+    <linearGradient id="pageGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38EF7D" />
+      <stop offset="100%" stop-color="#11998E" />
+    </linearGradient>
+
+    <!-- Drop Shadows for Depth -->
+    <filter id="subtleGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="16" flood-color="#000000" flood-opacity="0.35" />
+    </filter>
+  </defs>
+
+  <!-- macOS App Squircle Base -->
+  <rect x="96" y="96" width="832" height="832" rx="190" fill="url(#iconBg)" stroke="#2B364C" stroke-width="8" />
+
+  <!-- Book Glyph (Scaled up and mathematically centered) -->
+  <g transform="translate(186, 122) scale(6.8)" filter="url(#subtleGlow)">
+    <!-- Left Page (Base) -->
+    <path d="M 18 20 
+             C 33 20, 44 24, 48 29 
+             L 48 77 
+             C 44 73, 32 69, 18 69 
+             Z" 
+          fill="#E2E8F0" />
+
+    <!-- Right Page (Active Memory Buffer) -->
+    <path d="M 78 20 
+             C 63 20, 52 24, 48 29 
+             L 48 77 
+             C 52 73, 64 69, 78 69 
+             Z" 
+          fill="url(#pageGlow)" />
+
+    <!-- Center Fold Spine -->
+    <line x1="48" y1="29" x2="48" y2="77" stroke="#0E131F" stroke-width="2.2" stroke-linecap="round" />
+
+    <!-- Micro-indicator Dot -->
+    <circle cx="48" cy="91" r="3.8" fill="#38EF7D" />
+  </g>
+</svg>

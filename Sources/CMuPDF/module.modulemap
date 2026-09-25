@@ -1,0 +1,5 @@
+module CMuPDF {
+    header "shim.h"
+    link "mupdf"
+    export *
+}

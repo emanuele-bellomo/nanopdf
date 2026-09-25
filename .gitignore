@@ -76,3 +76,6 @@ build/
 *.o
 *.a
 *.dylib
+
+# Apps
+*.app
