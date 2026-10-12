@@ -25,15 +25,15 @@
 // MuPDF PDF-specific API — PDF document, annotations, etc.
 #include <mupdf/pdf.h>
 
-// ---------------------------------------------------------------------------
-// Swift-callable wrappers for MuPDF macros
-// ---------------------------------------------------------------------------
 
-/// Create a new MuPDF context. Wraps the fz_new_context() macro which Swift
-/// cannot call directly because it expands to fz_new_context_imp(..., FZ_VERSION).
-static inline fz_context *nanopdf_new_context(void) {
-    return fz_new_context(NULL, NULL, FZ_STORE_DEFAULT);
-}
+// Swift-callable wrappers for MuPDF macros
+
+
+/// Create a thread-safe MuPDF context with real locking callbacks installed.
+/// Implemented in locks.c — safe to call fz_clone_context() on the result
+/// from multiple threads.
+fz_context *nanopdf_new_context(void);
+
 
 /// Returns the MuPDF version string (e.g. "1.28.4").
 /// FZ_VERSION is a preprocessor macro, invisible to Swift.
@@ -55,5 +55,7 @@ static inline fz_rect nanopdf_bound_page(fz_context *ctx, fz_page *page) {
 static inline fz_colorspace *nanopdf_device_rgb(fz_context *ctx) {
     return fz_device_rgb(ctx);
 }
+
+fz_pixmap *nanopdf_render_page_bbox(fz_context *ctx, fz_page *page, fz_matrix ctm, fz_irect bbox, int alpha, fz_cookie *cookie);
 
 #endif /* CMUPDF_SHIM_H */

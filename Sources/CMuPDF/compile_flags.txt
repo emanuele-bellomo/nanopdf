@@ -1,0 +1,2 @@
+-I/opt/homebrew/opt/mupdf/include
+-Iinclude

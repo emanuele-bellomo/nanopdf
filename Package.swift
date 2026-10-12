@@ -10,11 +10,11 @@ let package = Package(
     targets: [
         // System library target that wraps MuPDF's C headers.
         // This creates a Swift-importable module called "CMuPDF".
-        .systemLibrary(
+        .target(
             name: "CMuPDF",
-            pkgConfig: nil,
-            providers: [
-                .brew(["mupdf"])
+            path: "Sources/CMuPDF",
+            cSettings: [
+                .unsafeFlags(["-I/opt/homebrew/opt/mupdf/include"])
             ]
         ),
 
@@ -23,6 +23,9 @@ let package = Package(
             name: "NanoPDF",
             dependencies: ["CMuPDF"],
             path: "Sources/NanoPDF",
+            swiftSettings: [
+                .unsafeFlags(["-Xcc", "-I/opt/homebrew/include"])
+            ],
             linkerSettings: [
                 // Link the MuPDF dynamic library from Homebrew.
                 .unsafeFlags([

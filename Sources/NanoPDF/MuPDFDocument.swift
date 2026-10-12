@@ -18,7 +18,6 @@ final class MuPDFDocument {
 
     /// MuPDF global context — owns allocators, error handlers, font cache.
     private let ctx: UnsafeMutablePointer<fz_context>
-
     /// The opened PDF document handle.
     private let doc: UnsafeMutablePointer<fz_document>
 
@@ -108,11 +107,12 @@ final class MuPDFDocument {
         //   3. Runs the page through the device
         //   4. Cleans up the device
         //   5. Returns the filled pixmap
-        guard let pixmap = fz_new_pixmap_from_page(ctx, page, transform,
-                                                    nanopdf_device_rgb(ctx),
-                                                    Int32(1)) else {
+
+        guard let pixmap = fz_new_pixmap_from_page(
+            ctx, page, transform, nanopdf_device_rgb(ctx), Int32(1)
+        ) else {
             print("❌ MuPDFDocument: Failed to render page \(number) to pixmap")
-            return nil
+             return nil
         }
         // Ensure the pixmap is always dropped after we create the CGImage.
         defer { fz_drop_pixmap(ctx, pixmap) }
@@ -180,14 +180,116 @@ final class MuPDFDocument {
             intent: .defaultIntent
         )
 
-        // At this point:
-        //   - The CGImage owns a copy of the pixel data (via dataCopy + provider).
-        //   - The defer blocks will now run:
-        //     1. fz_drop_pixmap(ctx, pixmap)  — frees MuPDF's pixel buffer
-        //     2. fz_drop_page(ctx, page)      — frees the page structures
         // Memory stays flat: only one CGImage is alive at a time (the caller
         // replaces the old one, which gets deallocated by ARC).
 
         return image
+    }
+
+    // MARK: - Thread-Safe Rendering
+
+    /// Serializes access to the shared ctx/doc pair. MuPDF's fz_context is not
+    /// thread-safe, but fz_clone_context needs to read from it briefly.
+    private let lock = NSLock()
+
+    /// Thread-safe render: clones the fz_context for the calling thread, uses
+    /// the clone for the entire render pipeline, then drops it. This avoids
+    /// concurrent access to FreeType's internal state (the zoom-crash bug).
+    ///
+    /// Safe to call from any thread. Multiple concurrent calls are OK because
+    /// each gets its own cloned context.
+    func renderPageThreadSafe(number: Int, zoom: Float, darkMode: Bool, viewport: CGRect? = nil, cookie: UnsafeMutablePointer<fz_cookie>? = nil) -> CGImage? {
+        guard number >= 0 && number < pageCount else { return nil }
+
+        // Clone the context under the lock (very fast — just copies pointers
+        // to the shared font cache / store). The clone has its own error stack.
+        lock.lock()
+        guard let cloneCtx = fz_clone_context(ctx) else {
+            lock.unlock()
+            return nil
+        }
+        // Also load the page under the lock — fz_load_page reads from `doc`
+        // which shares the main ctx.
+        guard let page = fz_load_page(cloneCtx, doc, Int32(number)) else {
+            lock.unlock()
+            fz_drop_context(cloneCtx)
+            return nil
+        }
+        lock.unlock()
+
+        defer {
+            fz_drop_page(cloneCtx, page)
+            fz_drop_context(cloneCtx)
+        }
+
+        let ctm = nanopdf_scale(zoom, zoom)
+
+        // Full page size at this zoom, in device pixels.
+        let fullBoundsRect = fz_transform_rect(nanopdf_bound_page(cloneCtx, page), ctm)
+        let fullBounds = fz_round_rect(fullBoundsRect)
+
+        // Compute the actual bbox to render: the requested viewport intersected
+        // with the page (so we never ask MuPDF for pixels outside the page),
+        // or the whole page if no viewport was given.
+        let bbox: fz_irect
+        if let viewport {
+            let requested = fz_irect(
+                x0: Int32(viewport.minX), y0: Int32(viewport.minY),
+                x1: Int32(viewport.maxX), y1: Int32(viewport.maxY)
+            )
+            bbox = fz_intersect_irect(requested, fullBounds)
+        } else {
+            bbox = fullBounds
+        }
+        guard bbox.x1 > bbox.x0, bbox.y1 > bbox.y0 else {
+            print("⚠️ MuPDFDocument: Empty/invalid bbox for page \(number)")
+            return nil
+        }
+
+        guard let pixmap = nanopdf_render_page_bbox(cloneCtx, page, ctm, bbox, 1, cookie) else {
+            print("❌ MuPDFDocument: Failed to render page \(number) to pixmap")
+            return nil
+        }
+        defer {fz_drop_pixmap(cloneCtx, pixmap)}
+
+        if darkMode {
+            fz_invert_pixmap_luminance(cloneCtx, pixmap)
+        }
+
+        let width  = Int(fz_pixmap_width(cloneCtx, pixmap))
+        let height = Int(fz_pixmap_height(cloneCtx, pixmap))
+        let stride = Int(fz_pixmap_stride(cloneCtx, pixmap))
+        let n      = Int(fz_pixmap_components(cloneCtx, pixmap))
+
+        guard let samples = fz_pixmap_samples(cloneCtx, pixmap) else { return nil }
+
+        let dataSize = height * stride
+        let dataCopy = UnsafeMutablePointer<UInt8>.allocate(capacity: dataSize)
+        dataCopy.initialize(from: samples, count: dataSize)
+
+        guard let provider = CGDataProvider(dataInfo: dataCopy, data: dataCopy, size: dataSize, releaseData: {
+            info, _, _ in guard let ptr = info else { return }
+            ptr.assumingMemoryBound(to: UInt8.self).deallocate()
+        }) else {
+            dataCopy.deallocate()
+            return nil
+        }
+
+        let colorSpace = CGColorSpaceCreateDeviceRGB()
+        let bitmapInfo = CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedLast.rawValue)
+
+        return CGImage(
+            width: width,
+            height: height,
+            bitsPerComponent: 8,
+            bitsPerPixel: n * 8,
+            bytesPerRow: stride,
+            space: colorSpace,
+            bitmapInfo: bitmapInfo,
+            provider: provider,
+            decode: nil,
+            shouldInterpolate: true,
+            intent: .defaultIntent
+        )
     }
 }
